@@ -36,24 +36,35 @@
 
 (defn try-read [reader]
   (try
-    (read reader false nil)
+    (read reader false :eof)
     (catch Exception e (debug "Failed to read form: " e))))
-
-(defn form-seq [reader]
-  (if-let [f (try-read reader)]
-    (cons f (form-seq reader))))
 
 (defn get-clj-resource-reader [url]
   (let [rs (io/input-stream url)]
     (PushbackReader. (InputStreamReader. rs))))
 
-(defn match-clj-resource-forms [url match-fn]
-  (with-open [reader (get-clj-resource-reader url)]
-    (apply vector (remove nil? (map match-fn (form-seq reader))))))
+(defn get-form [l]
+  (if (seq? l)
+    (first l)
+    nil))
 
-(defn dump-forms [url]
-  (doseq [f (match-clj-resource-forms url identity)]
-    (info f)))
+(defn find-pipelines [reader]
+  (loop [namespace nil
+         found []]
+    (let [f (try-read reader)]
+      (if (= :eof f)
+        found
+        (condp = (get-form f)
+          'ns (recur (second f) found)
+          'defpipeline (let [match (parse-pipeline-definition (rest f))]
+                         (if match
+                           (recur namespace (conj found (merge match {:ns namespace})))
+                           (recur namespace found)))
+          (recur namespace found))))))
+
+(defn find-resource-pipelines [url]
+  (with-open [reader (get-clj-resource-reader url)]
+    (find-pipelines reader)))
 
 (defmacro defpipeline [name doc meta args & body]
   (let [m (merge {:pipeline true} (or meta {}))]
@@ -65,8 +76,8 @@
 (defn list-pipelines [resource-urls]
   (binding [*read-eval* false]
     (doseq [url resource-urls]
-      (doseq [{:keys [name doc args]} (match-clj-resource-forms url match-pipeline)]
-        (info name "\t\t" (string/join ", " args) "\t\t" doc)))))
+      (doseq [{:keys [name doc args ns]} (find-resource-pipelines url)]
+        (info (str ns "/" name) "\t\t" (string/join ", " args) "\t\t" doc)))))
 
 (defn grafter
   "List the grafter pipelines in the project"
