@@ -1,4 +1,5 @@
 (ns leiningen.grafter
+  (:refer-clojure :exclude [list])
   (:require [leiningen.core.main :refer [info warn debug]]
             [clojure.java.io :as io]
             [clojure.edn :as edn]
@@ -79,7 +80,21 @@
       (doseq [{:keys [name doc args ns]} (find-resource-pipelines url)]
         (info (str ns "/" name) "\t\t" (string/join ", " args) "\t\t" doc)))))
 
-(defn grafter
-  "List the grafter pipelines in the project"
-  [project & args]
+(defn list
+  "Lists all the grafter pipelines in the current project"
+  []
   (list-pipelines (find-clj-classpath-resources)))
+
+(defn server
+  "Starts a HTTP server hosting an import service for the pipelines in this project."
+  [& args]
+  nil)
+
+(defn ^{:subtasks [#'list #'server]}
+  grafter
+  "Plugin for managing and executing grafter pipelines."
+  [project command & args]
+  (condp = command
+    "list" (list)
+    "server" (server args)
+    (warn "Unknown command:" command)))
