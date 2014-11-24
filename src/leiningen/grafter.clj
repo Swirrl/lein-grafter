@@ -22,13 +22,13 @@
 
 (defn find-args [pipeline-form]
   (let [[opts args-rest] (split-with (complement vector?) pipeline-form)]
-    (if-let [arg-map (find-pipeline-opts opts)]
-      (if-let [arg-vec (first args-rest)]
+    (when-let [arg-map (find-pipeline-opts opts)]
+      (when-let [arg-vec (first args-rest)]
         (merge arg-map {:args arg-vec})))))
 
 (defn parse-pipeline-definition [pipeline-form]
-  (if-let [n (first pipeline-form)]
-    (if-let [arg-map (find-args (rest pipeline-form))]
+  (when-let [n (first pipeline-form)]
+    (when-let [arg-map (find-args (rest pipeline-form))]
       (merge {:name n} arg-map))))
 
 (defn match-pipeline [form]
@@ -37,7 +37,7 @@
 
 (defn try-read [reader]
   (try
-    (read reader false :eof)
+    (read reader false ::eof)
     (catch Exception e (debug "Failed to read form: " e))))
 
 (defn get-clj-resource-reader [url]
@@ -53,7 +53,7 @@
   (loop [namespace nil
          found []]
     (let [f (try-read reader)]
-      (if (= :eof f)
+      (if (= ::eof f)
         found
         (condp = (get-form f)
           'ns (recur (second f) found)
@@ -76,9 +76,9 @@
 
 (defn list-pipelines [resource-urls]
   (binding [*read-eval* false]
-    (doseq [url resource-urls]
-      (doseq [{:keys [name doc args ns]} (find-resource-pipelines url)]
-        (info (str ns "/" name) "\t\t" (string/join ", " args) "\t\t" doc)))))
+    (doseq [url resource-urls
+            {:keys [name doc args ns]} (find-resource-pipelines url)]
+      (info (str ns "/" name) "\t\t" (string/join ", " args) "\t\t" doc))))
 
 (defn list
   "Lists all the grafter pipelines in the current project"
@@ -94,7 +94,7 @@
   grafter
   "Plugin for managing and executing grafter pipelines."
   [project command & args]
-  (condp = command
+  (case command
     "list" (list)
     "server" (server args)
     (warn "Unknown command:" command)))
