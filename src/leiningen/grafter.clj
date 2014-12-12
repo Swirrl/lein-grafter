@@ -1,8 +1,8 @@
 (ns leiningen.grafter
   (:refer-clojure :exclude [list])
   (:require
-   [grafter.pipeline.search :refer [find-clj-classpath-resources find-resource-pipelines
-                                    fully-qualified-name]]
+   [grafter.pipeline :refer [find-clj-classpath-resources find-resource-pipelines
+                             fully-qualified-name]]
    [leiningen.core.main :refer [info warn debug]]
    [clojure.string :as string])
   (:import [net.sf.corn.cps CPScanner ResourceFilter]
@@ -12,8 +12,10 @@
   "Lists all the grafter pipelines in the current project"
   []
   (doseq [url (find-clj-classpath-resources)
-          pipeline (find-resource-pipelines url)]
-    (info (fully-qualified-name pipeline) "\t\t" (string/join ", " (:args pipeline)) "\t\t" (:doc pipeline))))
+          pipeline (->> (find-resource-pipelines url)
+                        (remove #(instance? Exception %)))]
+
+    (info (fully-qualified-name pipeline) "\t\t" (string/join ", " (:args pipeline)) "\t\t\t ;; " (:doc pipeline))))
 
 (defn server
   "Starts a HTTP server hosting an import service for the pipelines in this project."
