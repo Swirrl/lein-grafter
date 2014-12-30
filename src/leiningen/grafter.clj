@@ -15,7 +15,8 @@
 
 (def grafter-requires '(do (require 'grafter.pipeline)
                            (require 'grafter.rdf)
-                           (require 'grafter.rdf.io)))
+                           (require 'grafter.rdf.io)
+                           (require 'leiningen.core.main)))
 
 (defn eval-in-grafter-project [project code-to-eval require]
   (let [profile (or (:grafter (:profiles project)) grafter-profile)
@@ -38,7 +39,7 @@
                                                                  (str ";; " doc#)
                                                                  ";; No doc string")])]
                                         (leiningen.core.main/info (String/format pattern# data#))))
-                           (concat grafter-requires '((require 'leiningen.core.main)))))
+                           grafter-requires))
 
 (defn run
   "Run the specified grafter pipeline"
@@ -47,14 +48,17 @@
   (eval-in-grafter-project project
                            `(do (try
                                   (let [results# (grafter.pipeline/apply-pipeline ~pipeline '~inputs)]
-                                    (grafter.rdf/add (grafter.rdf.io/rdf-serializer ~output) results#))
+                                    (if (re-find #"\.(xls|xlsx|csv)$" ~output)
+                                      (grafter.tabular/write-dataset ~output results#)
+                                      (grafter.rdf/add (grafter.rdf.io/rdf-serializer ~output) results#)))
                                   (catch FileNotFoundException ex#
-                                    (println (str "Could not find a defpipeline called " ~pipeline)))))
-                           grafter-requires))
+                                    (leiningen.core.main/abort (str "No such pipeline " ~pipeline " pipelines must be defined with defpipeline to be found by this plugin")))))
 
-(defn ^{:subtasks [#'list
-                   #'run]}
-  grafter
+                           (concat grafter-requires '((require 'grafter.tabular)
+                                                      (require 'grafter.tabular.csv)
+                                                      (require 'grafter.tabular.excel)))))
+
+(defn ^{:subtasks [#'list #'run]} grafter
   "Plugin for managing and executing grafter pipelines."
   [project command & args]
   (case command
@@ -66,4 +70,4 @@
             (if (or (nil? pipeline) (empty? inputs) (nil? output))
               (abort "Invalid arguments.  Usage: lein grafter run pipeline-name input ... output")
               (run project pipeline inputs output)))
-    (warn "Unknown command:" command)))
+    (abort (str "Unknown command: " command))))
