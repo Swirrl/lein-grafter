@@ -34,7 +34,9 @@
                                             data# (into-array Object
                                                               [(fully-qualified-name pipeline#)
                                                                (string/join ", " (:args pipeline#))
-                                                               (str ";; " (:doc pipeline#))])]
+                                                               (if-let [doc# (:doc pipeline#)]
+                                                                 (str ";; " doc#)
+                                                                 ";; No doc string")])]
                                         (leiningen.core.main/info (String/format pattern# data#))))
                            (concat grafter-requires '((require 'leiningen.core.main)))))
 
