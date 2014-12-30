@@ -36,7 +36,7 @@
                                                                (string/join ", " (:args pipeline#))
                                                                (str ";; " (:doc pipeline#))])]
                                         (leiningen.core.main/info (String/format pattern# data#))))
-                           grafter-requires))
+                           (concat grafter-requires '((require 'leiningen.core.main)))))
 
 (defn run
   "Run the specified grafter pipeline"
