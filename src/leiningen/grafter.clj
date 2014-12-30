@@ -63,6 +63,7 @@
                 arguments (rest args)
                 inputs (butlast arguments)
                 output (last args)]
-            (info pipeline arguments inputs output)
-            (run project pipeline inputs output))
+            (if (or (nil? pipeline) (empty? inputs) (nil? output))
+              (abort "Invalid arguments.  Usage: lein grafter run pipeline-name input ... output")
+              (run project pipeline inputs output)))
     (warn "Unknown command:" command)))
