@@ -1,22 +1,60 @@
-# grafter
+# lein-grafter
 
-A Leiningen plugin to do many wonderful things.
+Adds some convenient commandline tools for listing and running
+pipelines in a grafter project.
 
 ## Usage
 
-FIXME: Use this for user-level plugins:
-
-Put `[grafter "0.1.0-SNAPSHOT"]` into the `:plugins` vector of your
-`:user` profile, or if you are on Leiningen 1.x do `lein plugin install
-grafter 0.1.0-SNAPSHOT`.
-
-FIXME: Use this for project-level plugins:
-
 Put `[grafter "0.1.0-SNAPSHOT"]` into the `:plugins` vector of your project.clj.
 
-FIXME: and add an example usage that actually makes sense:
+### Listing Pipelines
 
-    $ lein grafter
+Then inside a grafter pipeline that defines some pipelines with
+`defpipe` and/or `defgraft` you can list pipelines like this:
+
+    $ lein grafter list
+    test-project.pipeline/convert-persons-data                   data-file                      ;; An example pipeline tabular pipeline
+    test-project.pipeline/convert-persons-data-to-graph          data-file                      ;; A pipeline generating linked data
+
+### Running Tabular Pipelines
+
+You can run the pipelines with the command `lein grafter run`.  Pipe's
+exposed with `defpipe` yield tabular output and can be used to convert
+the file into csv, xls or xlsx (Excel formats) by for example running.
+Note how grafter infers the format from the output files file
+extension.
+
+    $ lein grafter run test-project.pipeline/convert-persons-data ./data/example-data.csv example-output.csv
+    $ lein grafter run test-project.pipeline/convert-persons-data ./data/example-data.csv example-output.xlsx
+    $ lein grafter run test-project.pipeline/convert-persons-data ./data/example-data.csv example-output.xls
+
+### Running Linked Data Pipelines (Grafts)
+
+To output linked data (RDF) you must call a graft (a pipeline that
+converts `tabular data -> linked data`).  Like with `defpipe` grafts
+must be exposed to the plugin with `defgraft`.
+
+They can be run in the same way as pipes e.g to output linked data as
+turtle:
+
+    $ lein grafter run test-project.pipeline/convert-persons-data-to-graph ./data/example-data.csv example-output.ttl
+
+... or as n-triples:
+
+    $ lein grafter run test-project.pipeline/convert-persons-data-to-graph ./data/example-data.csv example-output.nt
+
+Supported formats for triples and their file extensions are:
+
+- n-triples `.nt`
+- turtle `.ttl`
+- n3 `.n3`
+- rdf xml `.rdf`
+
+Supported formats for quads and their file extensions are:
+
+- n-quads `.nq`
+- trig `.trig`
+- trix `.trix`
 
 ## License
 
