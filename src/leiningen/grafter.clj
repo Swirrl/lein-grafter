@@ -34,7 +34,9 @@
                                       (let [pattern# "%1$-60s %2$-30s %3$s"
                                             data# (into-array Object
                                                               [(fully-qualified-name pipeline#)
-                                                               (string/join ", " (:args pipeline#))
+                                                               (if-let [args# (:args pipeline#)]
+                                                                 (string/join ", " args#)
+                                                                 "???")
                                                                (if-let [doc# (:doc pipeline#)]
                                                                  (str ";; " doc#)
                                                                  ";; No doc string")])]
