@@ -5,7 +5,15 @@ pipelines in a grafter project.
 
 ## Usage
 
-Put `[grafter "0.1.0-SNAPSHOT"]` into the `:plugins` vector of your project.clj.
+Put the following into the `:plugins` vector of your grafter projects
+`project.clj` e.g.
+
+````clojure
+:plugins [[lein-grafter "0.3.0-SNAPSHOT"]]
+````
+
+Once this is done the following command line features will become
+available:
 
 ### Listing Pipelines
 
@@ -58,7 +66,7 @@ Supported formats for quads and their file extensions are:
 
 ## License
 
-Copyright © 2014 FIXME
+Copyright © 2014 Swirrl IT Ltd
 
 Distributed under the Eclipse Public License either version 1.0 or (at
 your option) any later version.
