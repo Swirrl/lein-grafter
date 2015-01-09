@@ -25,25 +25,6 @@
     (eval-in-project project
                      code-to-eval
                      require)))
-(comment
-  (defn list
-  "Lists all the grafter pipelines in the current project"
-  [project]
-  (eval-in-grafter-project project `(doseq [url# (find-clj-classpath-resources)
-                                            pipeline# (->> (find-resource-pipelines url#)
-                                                           (remove #(instance? Exception %)))]
-                                      (let [pattern# "%1$-60s %2$-30s %3$s"
-                                            data# (into-array Object
-                                                              [(fully-qualified-name pipeline#)
-                                                               (if-let [args# (:args pipeline#)]
-                                                                 (string/join ", " args#)
-                                                                 "???")
-                                                               (if-let [doc# (:doc pipeline#)]
-                                                                 (str ";; " doc#)
-                                                                 ";; No doc string")])]
-                                        (leiningen.core.main/info (String/format pattern# data#))))
-                           grafter-requires)))
-
 (defn list
   "Lists all the grafter pipelines in the current project"
   ([project type]
@@ -65,7 +46,10 @@
                                   (let [results# (grafter.pipeline/apply-pipeline ~pipeline '~inputs)]
                                     (if (re-find #"\.(xls|xlsx|csv)$" ~output)
                                       (grafter.tabular/write-dataset ~output results#)
-                                      (grafter.rdf/add (grafter.rdf.io/rdf-serializer ~output) results#)))
+                                      (if (grafter.tabular/dataset? results#)
+                                        (leiningen.core.main/abort (str "Could not write RDF as " (class results#)
+                                                                        " is not a valid representation of Statements.  This error usually occurs if you try and generate graph data from a pipe."))
+                                        (grafter.rdf/add (grafter.rdf.io/rdf-serializer ~output) results#))))
                                   (catch FileNotFoundException ex#
                                     (leiningen.core.main/abort (str "No such pipeline " ~pipeline " pipelines must be defined with defpipeline to be found by this plugin")))))
 
