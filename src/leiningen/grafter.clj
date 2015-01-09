@@ -14,6 +14,7 @@
                                       [leiningen "2.5.0"]]})
 
 (def grafter-requires '(do (require 'grafter.pipeline)
+                           (require 'grafter.pipeline.plugin)
                            (require 'grafter.rdf)
                            (require 'grafter.rdf.io)
                            (require 'leiningen.core.main)))
@@ -24,8 +25,8 @@
     (eval-in-project project
                      code-to-eval
                      require)))
-
-(defn list
+(comment
+  (defn list
   "Lists all the grafter pipelines in the current project"
   [project]
   (eval-in-grafter-project project `(doseq [url# (find-clj-classpath-resources)
@@ -41,7 +42,19 @@
                                                                  (str ";; " doc#)
                                                                  ";; No doc string")])]
                                         (leiningen.core.main/info (String/format pattern# data#))))
-                           grafter-requires))
+                           grafter-requires)))
+
+(defn list
+  "Lists all the grafter pipelines in the current project"
+  ([project type]
+   (let [function-call-form (clojure.core/list (case type
+                                                 nil 'grafter.pipeline.plugin/list-pipelines
+                                                 "pipes" 'grafter.pipeline.plugin/list-pipes
+                                                 "grafts" 'grafter.pipeline.plugin/list-grafts
+                                                 (leiningen.core.main/abort "Usage: lein grafter list [pipes|grafts|pipelines]")))]
+     (eval-in-grafter-project project `(doseq [pipeline-desc# ~function-call-form]
+                                         (leiningen.core.main/info pipeline-desc#))
+                              grafter-requires))))
 
 (defn run
   "Run the specified grafter pipeline"
@@ -64,7 +77,7 @@
   "Plugin for managing and executing grafter pipelines."
   [project command & args]
   (case command
-    "list" (list project)
+    "list" (list project (first args))
     "run" (let [pipeline (first args)
                 arguments (rest args)
                 inputs (butlast arguments)
