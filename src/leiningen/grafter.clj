@@ -50,6 +50,7 @@
                                         (leiningen.core.main/abort (str "Could not write RDF as " (class results#)
                                                                         " is not a valid representation of Statements.  This error usually occurs if you try and generate graph data from a pipe."))
                                         (grafter.rdf/add (grafter.rdf.io/rdf-serializer ~output) results#))))
+                                  (leiningen.core.main/info (str '~@inputs " --[" ~pipeline "]--> " ~output))
                                   (catch FileNotFoundException ex#
                                     (leiningen.core.main/abort (str "No such pipeline " ~pipeline " pipelines must be defined with defpipeline to be found by this plugin")))))
 
