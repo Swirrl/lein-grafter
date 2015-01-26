@@ -9,7 +9,7 @@ Put the following into the `:plugins` vector of your grafter projects
 `project.clj` e.g.
 
 ````clojure
-:plugins [[lein-grafter "0.3.0-SNAPSHOT"]]
+:plugins [[lein-grafter "0.3.0"]]
 ````
 
 Once this is done the following command line features will become
