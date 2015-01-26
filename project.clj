@@ -1,8 +1,8 @@
-(defproject lein-grafter "0.3.0-SNAPSHOT"
+(defproject lein-grafter "0.3.0"
   :description "A leiningen plugin for finding and running grafter pipelines from the commandline."
   :url "https://github.com/Swirrl/lein-grafter"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
 
-  :dependencies [[grafter "0.3.0-SNAPSHOT"]]
+  :dependencies [[grafter "0.3.0"]]
   :eval-in-leiningen true)
