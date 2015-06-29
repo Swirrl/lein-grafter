@@ -10,7 +10,7 @@
   (:import [net.sf.corn.cps CPScanner ResourceFilter]
            [java.io InputStreamReader PushbackReader FileNotFoundException]))
 
-(def grafter-profile {:dependencies '[[lein-grafter "0.5.0-SNAPSHOT"]
+(def grafter-profile {:dependencies '[[lein-grafter "0.5.0"]
                                       [leiningen "2.5.0"]]})
 
 (def grafter-requires '(do (require 'grafter.pipeline)
