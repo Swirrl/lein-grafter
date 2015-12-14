@@ -5,27 +5,30 @@
    [leiningen.core.main :refer [info warn debug abort]]
    [leiningen.core.eval :refer [eval-in-project]]
    [leiningen.core.project :as project]
+   [clojure.edn]
    [clojure.string :as string])
   (:import
            [java.io InputStreamReader PushbackReader FileNotFoundException]))
 
-(def grafter-profile {:dependencies '[[lein-grafter "0.5.0"]
+(def grafter-profile {:dependencies '[[lein-grafter "0.6.0-SNAPSHOT"]
                                       [leiningen "2.5.0"]]})
 
-(def grafter-requires '(do (require 'clojure.java.io)
-                           (require 'grafter.pipeline)
-                           (require 'clojure.edn)
-                           (require 'grafter.pipeline.plugin)
-                           (require 'grafter.rdf)
-                           (require 'grafter.rdf.io)
-                           (require 'leiningen.core.main)))
+(def grafter-requires ['clojure.java.io
+                       'clojure.edn
+                       'grafter.pipeline.plugin
+                       'leiningen.core.main])
 
-(defn eval-in-grafter-project [project code-to-eval require]
+(defn eval-in-grafter-project [project code-to-eval more-requires]
   (let [profile (or (:grafter (:profiles project)) grafter-profile)
-        project (project/merge-profiles project [profile])]
+        project (project/merge-profiles project [profile])
+        namespaces (:pipeline-namespaces (clojure.edn/read-string (slurp "grafter-config.edn")))
+        requires `(require ~@(map #(clojure.core/list 'quote %1)
+                                  (concat namespaces  more-requires)))]
+    (prn code-to-eval)
+    (prn requires)
     (eval-in-project project
                      code-to-eval
-                     require)))
+                     requires)))
 (defn list
   "Lists all the grafter pipelines in the current project"
   ([project type]
@@ -47,30 +50,27 @@
   [project pipeline inputs output]
 
   (let [syntree `(do
-                   (let [config# (clojure.edn/read-string (slurp "grafter-config.edn"))]
-                     (apply require (:pipeline-namespaces config#))
+                   (try
+                     ;; TODO need to interpret parameters against their types
+                     ;; and call e.g. read-dataset if it's a dataset this
+                     ;; should use code in grafter.pipeline.types
+                     (let [results# (~(symbol pipeline) ~@inputs)]
+                       (leiningen.core.main/info ~(str (string/join inputs " ") " --[" pipeline "]--> " output))
+                       (if (re-find #"\.(xls|xlsx|csv)$" ~output)
+                         (if (grafter.tabular/dataset? results#)
+                           (grafter.tabular/write-dataset ~output results#)
+                           (throw (IllegalArgumentException. "You tried to generate tabular results from a non-tabular pipeline.")))
+                         (grafter.rdf/add (grafter.rdf.io/rdf-serializer ~output) results#)))
 
-                     (try
-                       ;; TODO need to interpret parameters against their types
-                       ;; and call e.g. read-dataset if it's a dataset this
-                       ;; should use code in grafter.pipeline.types
-                       (let [results# ((symbol ~pipeline) ~@inputs)]
-                         (leiningen.core.main/info (str ~@inputs " --[" ~pipeline "]--> " ~output " results " results#))
-                         (if (re-find #"\.(xls|xlsx|csv)$" ~output)
-                           (if (grafter.tabular/dataset? results#)
-                             (grafter.tabular/write-dataset ~output results#)
+                     (catch FileNotFoundException ex#
+                       (leiningen.core.main/abort (str "No such pipeline " ~pipeline " pipelines must be exported with declare-pipeline to be found by this plugin")))))]
 
-                             (grafter.rdf/add (grafter.rdf.io/rdf-serializer ~output) results#))))
-
-                       (catch FileNotFoundException ex#
-                         (leiningen.core.main/abort (str "No such pipeline " ~pipeline " pipelines must be defined with defpipeline to be found by this plugin"))))))]
-    (prn syntree)
     (eval-in-grafter-project project
                              syntree
-
-                             (concat grafter-requires '((require 'grafter.tabular)
-                                                        (require 'grafter.tabular.csv)
-                                                        (require 'grafter.tabular.excel))))))
+                             '[grafter.tabular
+                               grafter.rdf
+                               grafter.rdf.io
+                               leiningen.core.main])))
 
 (defn ^{:subtasks [#'list #'run]} grafter
   "Plugin for managing and executing grafter pipelines."
