@@ -1,7 +1,6 @@
 (ns leiningen.grafter
   (:refer-clojure :exclude [list])
   (:require
-   ;[grafter.pipeline :refer [apply-pipeline]]
    [leiningen.core.main :refer [info warn debug abort]]
    [leiningen.core.eval :refer [eval-in-project]]
    [leiningen.core.project :as project]
@@ -24,8 +23,6 @@
         namespaces (:pipeline-namespaces (clojure.edn/read-string (slurp "grafter-config.edn")))
         requires `(require ~@(map #(clojure.core/list 'quote %1)
                                   (concat namespaces  more-requires)))]
-    (prn code-to-eval)
-    (prn requires)
     (eval-in-project project
                      code-to-eval
                      requires)))
@@ -41,9 +38,6 @@
                                            (doseq [pipeline-desc# ~function-call-form]
                                              (leiningen.core.main/info pipeline-desc#))))
                               grafter-requires))))
-
-
-
 
 (defn run
   "Run the specified grafter pipeline"
