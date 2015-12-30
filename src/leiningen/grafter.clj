@@ -10,10 +10,11 @@
            [java.io InputStreamReader PushbackReader FileNotFoundException]))
 
 (def grafter-profile {:dependencies '[[lein-grafter "0.6.0-SNAPSHOT"]
-                                      [leiningen "2.5.0"]]})
+                                      [leiningen "2.5.3"]]})
 
 (def grafter-requires ['clojure.java.io
                        'clojure.edn
+                       'grafter.pipeline
                        'grafter.pipeline.plugin
                        'leiningen.core.main])
 
@@ -48,8 +49,9 @@
                      ;; TODO need to interpret parameters against their types
                      ;; and call e.g. read-dataset if it's a dataset this
                      ;; should use code in grafter.pipeline.types
-                     (let [results# (~(symbol pipeline) ~@inputs)]
-                       (leiningen.core.main/info ~(str (string/join inputs " ") " --[" pipeline "]--> " output))
+                     (let [results# (grafter.pipeline/execute-pipeline-with-coerced-arguments
+                                     (quote ~(symbol pipeline)) ~(vec inputs))]
+                       (leiningen.core.main/info (clojure.core/str ~(string/join " " inputs) " --[" ~pipeline "]--> " ~output))
                        (if (re-find #"\.(xls|xlsx|csv)$" ~output)
                          (if (grafter.tabular/dataset? results#)
                            (grafter.tabular/write-dataset ~output results#)
