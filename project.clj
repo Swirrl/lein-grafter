@@ -4,5 +4,6 @@
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
 
-  :dependencies [[grafter "0.6.0-alpha5"]]
+  :dependencies [^{:voom {:repo "https://github.com/swirrl/grafter" :branch "master"}}
+                 [grafter "0.6.0-SNAPSHOT"]]
   :eval-in-leiningen true)
