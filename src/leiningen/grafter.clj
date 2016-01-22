@@ -9,7 +9,7 @@
   (:import
            [java.io InputStreamReader PushbackReader FileNotFoundException]))
 
-(def grafter-profile {:dependencies '[[lein-grafter "0.6.0-SNAPSHOT"]
+(def grafter-profile {:dependencies '[[lein-grafter "0.6.0"]
                                       [leiningen "2.5.3"]]})
 
 (def grafter-requires ['clojure.java.io
