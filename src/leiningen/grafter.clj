@@ -4,6 +4,7 @@
    [leiningen.core.main :refer [info warn debug abort]]
    [leiningen.core.eval :refer [eval-in-project]]
    [leiningen.core.project :as project]
+   [clojure.java.io :as io]
    [clojure.edn]
    [clojure.string :as string])
   (:import
@@ -55,7 +56,7 @@
                          (if (grafter.tabular/dataset? results#)
                            (grafter.tabular/write-dataset ~output results#)
                            (throw (IllegalArgumentException. "You tried to generate tabular results from a non-tabular pipeline.")))
-                         (grafter.rdf/add (grafter.rdf.io/rdf-serializer ~output) results#)))
+                         (grafter.rdf/add (grafter.rdf.io/rdf-serializer (io/file ~output)) results#)))
 
                      (catch FileNotFoundException ex#
                        (leiningen.core.main/abort (str "No such pipeline " ~pipeline " pipelines must be exported with declare-pipeline to be found by this plugin")))))]
