@@ -59,7 +59,7 @@
                          (grafter.rdf/add (grafter.rdf.io/rdf-serializer (io/file ~output)) results#)))
 
                      (catch FileNotFoundException ex#
-                       (leiningen.core.main/abort (str "No such pipeline " ~pipeline " pipelines must be exported with declare-pipeline to be found by this plugin")))))]
+                       (leiningen.core.main/abort (str (.getMessage ex#) " whilst trying to run pipeline " ~pipeline)))))]
 
     (eval-in-grafter-project project
                              syntree
