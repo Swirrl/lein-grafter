@@ -4,5 +4,5 @@
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
 
-  :dependencies [[grafter "0.7.4"]]
+  :dependencies [[grafter "0.8.6"]]
   :eval-in-leiningen true)
