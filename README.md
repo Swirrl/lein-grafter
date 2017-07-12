@@ -1,3 +1,10 @@
+# DEPRECATED
+
+NOTE: This project is deprecated after grafter.pipelines was removed from
+grafter and grafter.tabular.
+
+It should still be usable in grafter versions prior to 0.8.12.
+
 # lein-grafter
 
 Adds some convenient commandline tools for listing and running
